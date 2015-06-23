@@ -14,7 +14,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 public class CameraPreview extends FrameLayout implements
-    SurfaceHolder.Callback, PreviewCallback {
+SurfaceHolder.Callback, PreviewCallback {
 
   static {
     System.loadLibrary("card2digit");
@@ -160,25 +160,42 @@ public class CameraPreview extends FrameLayout implements
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (!done) {
-      StringBuilder b = new StringBuilder();
-      int x = 0;
-      Log.d("xxx", "width: " + mPreviewSize.width + " height: "
-          + mPreviewSize.height);
-      for (int j = 0; j < mPreviewSize.height; ++j) {
-        for (int i = 0; i < mPreviewSize.width; ++i) {
-          b.append(data[x]);
-          b.append(",");
-          ++x;
-        }
-        b.append("\n");
-      }
-      Log.d(
-          "xxx",
-          "result: "
-              + ocr(data, mPreviewSize.width, mPreviewSize.height, 0, 0, 0, 0));
+      Log.d("xxx", "length: " + data.length);
+      int width = mPreviewSize.width;
+      int height = mPreviewSize.height;
+      Log.d("xxx", "width: " + width);
+      Log.d("xxx", "height: " + height);
+
+      String result = ocr(
+          data,
+          width,
+          height,
+
+          Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+              / mSurfaceView.getWidth() * width),
+
+              Math.round((right * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
+                  / 2 - BorderView.WIDTH)
+                  / mSurfaceView.getWidth() * width),
+
+                  Math.round((top * BorderView.HEIGHT * 2 + mSurfaceView.getHeight()
+                      / 2 - BorderView.HEIGHT)
+                      / mSurfaceView.getHeight() * height),
+
+                      Math.round((bottom * BorderView.HEIGHT * 2 + mSurfaceView.getHeight()
+              / 2 - BorderView.HEIGHT)
+                          / mSurfaceView.getHeight() * height));
+
+      Log.d("xxx", "result: " + result);
       done = true;
+
     }
   }
+
+  float left = 30f / 85.6f;
+  float right = 75f / 85.6f;
+  float top = 44f / 54f;
+  float bottom = 50f / 54f;
 
   private native String ocr(byte[] data, int width, int height, int l, int r,
       int t, int b);

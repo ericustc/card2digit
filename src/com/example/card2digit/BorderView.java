@@ -7,10 +7,11 @@ import android.graphics.Paint;
 import android.view.View;
 
 public class BorderView extends View {
-  private Paint mPaint;
 
-  private int width = 214;
-  private int height = 135;
+  public static final int WIDTH = 214;
+  public static final int HEIGHT = 135;
+
+  private Paint mPaint;
 
   public BorderView(Context context) {
     super(context);
@@ -22,10 +23,16 @@ public class BorderView extends View {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
-    canvas.drawLine(50, 50, 100, 50, mPaint);
-    canvas.drawLine(50, 50, 50, 100, mPaint);
-    canvas.drawLine(478, 320, 428, 320, mPaint);
-    canvas.drawLine(478, 320, 478, 270, mPaint);
+    int centerX = getWidth() / 2;
+    int centerY = getHeight() / 2;
+    centerX -= WIDTH;
+    centerY -= HEIGHT;
+    canvas.drawLine(centerX, centerY, centerX + 50, centerY, mPaint);
+    canvas.drawLine(centerX, centerY, centerX, centerY + 50, mPaint);
+    centerX += WIDTH * 2;
+    centerY += HEIGHT * 2;
+    canvas.drawLine(centerX, centerY, centerX - 50, centerY, mPaint);
+    canvas.drawLine(centerX, centerY, centerX, centerY - 50, mPaint);
   }
 
 }
