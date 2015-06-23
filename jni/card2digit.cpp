@@ -25,6 +25,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
 	  }
   }
   env->ReleaseByteArrayElements(data, a, JNI_ABORT);
-  return env->NewStringUTF("");
+  return 0;
 }
 
