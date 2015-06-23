@@ -14,7 +14,6 @@
         android:label="@string/app_name" >
         <activity
             android:name="com.example.card2digit.CameraActivity"
-            android:label="Graphics/CameraPreview"
             android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
