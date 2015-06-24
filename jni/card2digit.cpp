@@ -4,6 +4,7 @@
 #include <string>
 #include <android/log.h>
 #include "card2digit.h"
+#include "mat.h"
 
 using namespace std;
 
@@ -12,7 +13,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
   // ROI: region of interest, where the alphanumeric text is located
   int roiWidth = right - left;
   int roiHeight = bottom - top;
-  vector<bool> area(roiWidth * roiHeight);
+  mat area(roiWidth, roiHeight);
   int row = top;
   int column = left;
   int cur = width * top + left;
