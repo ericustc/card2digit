@@ -64,7 +64,24 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
 		  0xC3,
 		  0xC3,
 		  0x7E,
-		  0x3C};
+		  0x3C
+  };
+
+  char glyphSix[] = {
+		  0x04,
+		  0x0C,
+		  0x18,
+		  0x30,
+		  0x70,
+		  0x7C,
+		  0xFE,
+		  0xC3,
+		  0xC3,
+		  0xC3,
+		  0xC3,
+		  0x7E,
+		  0x3C
+  };
 
   int l = -1;
   int r = -1;
@@ -84,7 +101,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
   				  if (j < t) {
   					  t = j;
   				  }
-  	  			  if (b < j) {
+  				  if (b < j) {
   	  				  b = j;
   	  			  } else {
   	  				  j = b;
@@ -97,10 +114,8 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
 
   __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "roi w*h: %d*%d, %d %d %d %d", roiWidth, roiHeight, l, r, t, b);
 
-
-  float grade = compare(glyphZero, area, l, r + 1, t, b + 1, ratio);
+  float grade = compare(glyphSix, area, l, r + 1, t, b + 1, ratio);
   __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "grade: %f", grade);
-
 
   for (int i = 0; i < roiHeight; ++i) {
 	  string s;
@@ -109,7 +124,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
 	  }
 	  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%s", s.c_str());
   }
-
 
   env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
   return 0;
