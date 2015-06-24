@@ -6,6 +6,6 @@ private:
 	int _height;
 public:
 	mat(int width, int height);
-	bool at(int row, int column);
+	bool at(int column, int row);
 	int size();
 };

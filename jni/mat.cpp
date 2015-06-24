@@ -8,7 +8,7 @@ mat::mat(int width, int height) : vector<bool>(width * height) {
 	_height = height;
 }
 
-bool mat::at(int row, int column) {
+bool mat::at(int column, int row) {
 	return (*this)[row * _width + column];
 }
 

@@ -173,11 +173,8 @@ public class CameraPreview extends FrameLayout implements
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (take) {
-      Log.d("xxx", "length: " + data.length);
       int width = mPreviewSize.width;
       int height = mPreviewSize.height;
-      Log.d("xxx", "width: " + width);
-      Log.d("xxx", "height: " + height);
 
       int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
           / 2 - BorderView.WIDTH)
