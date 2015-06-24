@@ -78,7 +78,8 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
   			  allWhite = false;
   			  r = i;
   			  if (l == -1) {
-  				  l = t = b = i;
+  				  l = i;
+  				  t = b = j;
   			  } else {
   				  if (j < t) {
   					  t = j;
