@@ -1,20 +1,25 @@
 #include <jni.h>
-#include <bitset>
-#include "card2digit.h"
+#include <vector>
+#include <utility>
+#include <string>
 #include <android/log.h>
+#include "card2digit.h"
 
 using namespace std;
 
 JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
   (JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height, jint left, jint right, jint top, jint bottom) {
-  bitset<500> area;
-  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "left: %d, right: %d", left, right);
-  jbyte *a = env->GetByteArrayElements(data, NULL);
+  // ROI: region of interest, where the alphanumeric text is located
+  int roiWidth = right - left;
+  int roiHeight = bottom - top;
+  vector<bool> area(roiWidth * roiHeight);
   int row = top;
   int column = left;
   int cur = width * top + left;
-  for (int i = 0; i < 5; ++i) {
-	  area.set(i, a[cur] > 0 ? true : false);
+  jbyte *pixel = env->GetByteArrayElements(data, 0);
+  // The first width*height bytes are from Y Channel, which are what we need
+  for (int i = 0; i < area.size(); ++i) {
+	  area[i] = (pixel[cur] & 0xFF) < 64; // The Y channel ranges from 0 to 255. We use 64 as the threshold
 	  ++column;
 	  if (column == right) {
 		  column = left;
@@ -24,7 +29,10 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
 		  ++cur;
 	  }
   }
-  env->ReleaseByteArrayElements(data, a, JNI_ABORT);
+  for (int row = 0; row < roiHeight; ++row) {
+	  string s;
+	  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%s", s.c_str());
+  }
+  env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
   return 0;
 }
-

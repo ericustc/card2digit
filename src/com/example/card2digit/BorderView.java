@@ -8,8 +8,8 @@ import android.view.View;
 
 public class BorderView extends View {
 
-  public static final int WIDTH = 214;
-  public static final int HEIGHT = 135;
+  public static final float WIDTH = 214 * 1.5f;
+  public static final float HEIGHT = 135 * 1.5f;
 
   private Paint mPaint;
 
@@ -23,12 +23,18 @@ public class BorderView extends View {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
-    int centerX = getWidth() / 2;
-    int centerY = getHeight() / 2;
+    float centerX = getWidth() / 2;
+    float centerY = getHeight() / 2;
     centerX -= WIDTH;
     centerY -= HEIGHT;
     canvas.drawLine(centerX, centerY, centerX + 50, centerY, mPaint);
     canvas.drawLine(centerX, centerY, centerX, centerY + 50, mPaint);
+    canvas.drawLine(centerX + CameraPreview.left * BorderView.WIDTH * 2,
+        centerY + CameraPreview.top * BorderView.HEIGHT * 2, getWidth(),
+        centerY + CameraPreview.top * BorderView.HEIGHT * 2, mPaint);
+    canvas.drawLine(centerX + CameraPreview.right * BorderView.WIDTH * 2,
+        centerY + CameraPreview.bottom * BorderView.HEIGHT * 2, 0, centerY
+            + CameraPreview.bottom * BorderView.HEIGHT * 2, mPaint);
     centerX += WIDTH * 2;
     centerY += HEIGHT * 2;
     canvas.drawLine(centerX, centerY, centerX - 50, centerY, mPaint);

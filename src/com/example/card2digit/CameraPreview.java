@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -12,9 +14,11 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 public class CameraPreview extends FrameLayout implements
-SurfaceHolder.Callback, PreviewCallback {
+    SurfaceHolder.Callback, PreviewCallback {
 
   static {
     System.loadLibrary("card2digit");
@@ -30,7 +34,15 @@ SurfaceHolder.Callback, PreviewCallback {
     super(context);
     mSurfaceView = new SurfaceView(context);
     addView(mSurfaceView);
-    addView(new BorderView(context));
+    BorderView borderView = new BorderView(context);
+    addView(borderView);
+    borderView.setOnClickListener(new OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        take = true;
+      }
+    });
 
     mHolder = mSurfaceView.getHolder();
     mHolder.addCallback(this);
@@ -149,53 +161,71 @@ SurfaceHolder.Callback, PreviewCallback {
   public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
     Camera.Parameters parameters = mCamera.getParameters();
     parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+    parameters.setFocusMode(Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+    // parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
     requestLayout();
-
     mCamera.setParameters(parameters);
     mCamera.startPreview();
   }
 
-  private boolean done;
+  private boolean take;
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (!done) {
+    if (take) {
       Log.d("xxx", "length: " + data.length);
       int width = mPreviewSize.width;
       int height = mPreviewSize.height;
       Log.d("xxx", "width: " + width);
       Log.d("xxx", "height: " + height);
 
-      String result = ocr(
-          data,
-          width,
-          height,
+      int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
+          / 2 - BorderView.WIDTH)
+          / mSurfaceView.getWidth() * width);
+      int r = Math.round((right * BorderView.WIDTH * 2
+          + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+          / mSurfaceView.getWidth() * width);
+      int t = Math.round((top * BorderView.HEIGHT * 2
+          + mSurfaceView.getHeight() / 2 - BorderView.HEIGHT)
+          / mSurfaceView.getHeight() * height);
+      int b = Math.round((bottom * BorderView.HEIGHT * 2
+          + mSurfaceView.getHeight() / 2 - BorderView.HEIGHT)
+          / mSurfaceView.getHeight() * height);
 
-          Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
-              / mSurfaceView.getWidth() * width),
+      int[] pixels = new int[(r - l) * (b - t)];
+      int row = t;
+      int column = l;
+      int cur = width * t + l;
+      for (int i = 0; i < pixels.length; ++i) {
+        int p = data[cur] & 0xFF;
+        pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
+        ++column;
+        if (column == r) {
+          column = l;
+          ++row;
+          cur = width * row + column;
+        } else {
+          ++cur;
+        }
+      }
+      Bitmap bm = Bitmap.createBitmap(pixels, r - l, b - t,
+          Bitmap.Config.ARGB_8888);
+      ImageView iv = new ImageView(getContext());
+      iv.setImageBitmap(bm);
+      Toast toast = new Toast(getContext());
+      toast.setView(iv);
+      toast.setDuration(Toast.LENGTH_LONG);
+      toast.show();
 
-              Math.round((right * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
-                  / 2 - BorderView.WIDTH)
-                  / mSurfaceView.getWidth() * width),
-
-                  Math.round((top * BorderView.HEIGHT * 2 + mSurfaceView.getHeight()
-                      / 2 - BorderView.HEIGHT)
-                      / mSurfaceView.getHeight() * height),
-
-                      Math.round((bottom * BorderView.HEIGHT * 2 + mSurfaceView.getHeight()
-              / 2 - BorderView.HEIGHT)
-                          / mSurfaceView.getHeight() * height));
-
-      Log.d("xxx", "result: " + result);
-      done = true;
-
+      String result = ocr(data, width, height, l, r, t, b);
+      take = false;
     }
   }
 
-  float left = 30f / 85.6f;
-  float right = 75f / 85.6f;
-  float top = 44f / 54f;
-  float bottom = 50f / 54f;
+  public static float left = 28f / 85.6f;
+  public static float right = 76f / 85.6f;
+  public static float top = 44f / 54f;
+  public static float bottom = 49f / 54f;
 
   private native String ocr(byte[] data, int width, int height, int l, int r,
       int t, int b);
