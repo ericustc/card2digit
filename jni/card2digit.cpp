@@ -54,7 +54,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
 		return 0;
 	}
-	float ratio = (boundingBoxBottom - boundingBoxTop + 1) / 13.0f;
 
 	int l = -1;
 	int r = -1;
