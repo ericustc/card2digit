@@ -215,6 +215,7 @@ public class CameraPreview extends FrameLayout implements
       toast.show();
 
       String result = ocr(data, width, height, l, r, t, b);
+      Log.d("xxx", "result: " + result);
       take = false;
     }
   }
