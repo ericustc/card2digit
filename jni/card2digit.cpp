@@ -12,6 +12,12 @@ char recognize(mat &pixel, int l, int r, int t, int b);
 float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
 		float ratio);
 
+/*
+ * Otsu's method to determine the optimal threshold
+ * https://en.wikipedia.org/wiki/Otsu%27s_method
+ */
+int otsu(int histogram[], int total);
+
 JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
 		jint left, jint right, jint top, jint bottom) {
@@ -23,9 +29,29 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	int column = left;
 	int cur = width * top + left;
 	jbyte *pixel = env->GetByteArrayElements(data, 0);
+
+	int histogram[256] = {};
+	for (int i = 0; i < area.size(); ++i) {
+		histogram[pixel[cur] & 0xFF]++;
+		++column;
+		if (column == right) {
+			column = left;
+			++row;
+			cur = width * row + column;
+		} else {
+			++cur;
+		}
+	}
+	int threshold = otsu(histogram, area.size());
+
+	__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "threshold: %d", threshold);
+
+	row = top;
+	column = left;
+	cur = width * top + left;
 	// The first width*height bytes are from Y Channel, which are what we need
 	for (int i = 0; i < area.size(); ++i) {
-		area[i] = (pixel[cur] & 0xFF) < 64; // The Y channel ranges from 0 to 255. We use 64 as the threshold
+		area[i] = (pixel[cur] & 0xFF) < threshold; // The Y channel ranges from 0 to 255. We use 64 as the threshold
 		++column;
 		if (column == right) {
 			column = left;
@@ -183,4 +209,39 @@ float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
 		__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%s", s.c_str());
 	}
 	return hit / ((float) (r - l) * (b - t));
+}
+
+int otsu(int histogram[], int total) {
+	int sum = 0;
+	for (int i = 1; i < 256; ++i)
+		sum += i * histogram[i];
+	int sumB = 0;
+	int wB = 0;
+	int wF = 0;
+	float mB;
+	float mF;
+	float max = 0.0;
+	float between = 0.0;
+	float threshold1 = 0.0;
+	float threshold2 = 0.0;
+	for (int i = 0; i < 256; ++i) {
+		wB += histogram[i];
+		if (wB == 0)
+			continue;
+		wF = total - wB;
+		if (wF == 0)
+			break;
+		sumB += i * histogram[i];
+		mB = sumB / wB;
+		mF = (sum - sumB) / wF;
+		between = wB * wF * (mB - mF) * (mB - mF);
+		if (between >= max) {
+			threshold1 = i;
+			if (between > max) {
+				threshold2 = i;
+			}
+			max = between;
+		}
+	}
+	return (threshold1 + threshold2) / 2.0;
 }
