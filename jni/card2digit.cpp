@@ -62,25 +62,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		}
 	}
 
-	// get bounding box height
-	int boundingBoxTop = -1;
-	int boundingBoxBottom = -1;
-	for (int i = 0; i < roiHeight; ++i) {
-		for (int j = 0; j < roiWidth; ++j) {
-			if (area.at(j, i)) {
-				if (boundingBoxTop == -1) {
-					boundingBoxTop = i;
-				}
-				boundingBoxBottom = i;
-				break;
-			}
-		}
-	}
-	if (boundingBoxTop == -1) {
-		env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
-		return 0;
-	}
-
 	int l = -1;
 	int r = -1;
 	int t = -1;
