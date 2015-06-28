@@ -8,16 +8,6 @@
 
 using namespace std;
 
-char recognize(mat &pixel, int l, int r, int t, int b);
-float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
-		float ratio);
-
-/*
- * Otsu's method to determine the optimal threshold
- * https://en.wikipedia.org/wiki/Otsu%27s_method
- */
-int otsu(int histogram[], int total);
-
 JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height,
 		jint left, jint right, jint top, jint bottom) {
