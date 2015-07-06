@@ -157,6 +157,15 @@ char recognize(mat &pixel, int l, int r, int t, int b) {
 			max = i;
 		}
 	}
+	if (max == 1 || max == 7) {
+		int count = 0;
+		for (int i = l; i < r; ++i) {
+			if (pixel.at(i, t)) {
+				++count;
+			}
+		}
+		return count * 2 < (r - l) ? 1 : 7;
+	}
 	return max == 10 ? 'X' : '0' + max;
 }
 
