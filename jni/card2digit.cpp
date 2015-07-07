@@ -164,7 +164,7 @@ char recognize(mat &pixel, int l, int r, int t, int b) {
 				++count;
 			}
 		}
-		return count * 2 < (r - l) ? 1 : 7;
+		return count / (float)(r - l) < 0.8f ? '1' : '7';
 	}
 	return max == 10 ? 'X' : '0' + max;
 }
