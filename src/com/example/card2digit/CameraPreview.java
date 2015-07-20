@@ -9,6 +9,8 @@ import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
+import android.os.Build.VERSION;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -30,11 +32,20 @@ public class CameraPreview extends FrameLayout implements
   private List<Size> mSupportedPreviewSizes;
   private Camera mCamera;
 
-  CameraPreview(Context context) {
+  public CameraPreview(Context context) {
     super(context);
-    mSurfaceView = new SurfaceView(context);
+    init();
+  }
+
+  public CameraPreview(Context context, AttributeSet attrs) {
+    super(context, attrs);
+    init();
+  }
+
+  private void init() {
+    mSurfaceView = new SurfaceView(getContext());
     addView(mSurfaceView);
-    BorderView borderView = new BorderView(context);
+    BorderView borderView = new BorderView(getContext());
     addView(borderView);
     borderView.setOnClickListener(new OnClickListener() {
 
@@ -65,8 +76,8 @@ public class CameraPreview extends FrameLayout implements
         heightMeasureSpec);
     setMeasuredDimension(width, height);
     if (mSupportedPreviewSizes != null) {
-      mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width,
-          height);
+      mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, height,
+          width);
     }
   }
 
@@ -85,11 +96,11 @@ public class CameraPreview extends FrameLayout implements
       getChildAt(1).layout(0, 0, width, height);
 
       if (mPreviewSize != null) {
-        previewWidth = mPreviewSize.width;
-        previewHeight = mPreviewSize.height;
+        previewWidth = mPreviewSize.height;
+        previewHeight = mPreviewSize.width;
       }
 
-      if (width * previewHeight > height * previewWidth) {
+      if (width * previewHeight < height * previewWidth) {
         final int scaledChildWidth = previewWidth * height / previewHeight;
         child.layout((width - scaledChildWidth) / 2, 0,
             (width + scaledChildWidth) / 2, height);
@@ -164,6 +175,11 @@ public class CameraPreview extends FrameLayout implements
     parameters.setFocusMode(Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
     // parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
     requestLayout();
+    if (VERSION.SDK_INT >= 8) {
+      mCamera.setDisplayOrientation(90);
+    } else {
+      parameters.set("rotation", 90);
+    }
     mCamera.setParameters(parameters);
     mCamera.startPreview();
   }

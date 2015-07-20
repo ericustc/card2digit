@@ -18,8 +18,8 @@ public class CameraActivity extends Activity {
     requestWindowFeature(Window.FEATURE_NO_TITLE);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-    mPreview = new CameraPreview(this);
-    setContentView(mPreview);
+    setContentView(R.layout.activity_camera);
+    mPreview = (CameraPreview) findViewById(R.id.camera);
   }
 
   @Override
