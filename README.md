@@ -8,4 +8,4 @@ Simple alphanumeric OCR for identity cards
 * Built in cross-platform C++
 
 ## Usage
-card2digit is designed to recognize printed alphanumeric text on identity cards, passports and other documents. It is required that the position of the text in the document is known beforehand and the text is printed in a well-defined font.
+card2digit is designed to recognize printed alphanumeric text on identity cards, passports and other documents. It is required that the position of the text in the document is known beforehand and the text is printed in a well-defined font. card2digit takes advantage of all these prerequisites to achieve efficient client-side OCR.
