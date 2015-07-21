@@ -10,7 +10,6 @@ public class CameraActivity extends Activity {
   private CameraPreview mPreview;
   private Camera mCamera;
 
-  @SuppressWarnings("deprecation")
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

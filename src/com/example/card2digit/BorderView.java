@@ -29,6 +29,13 @@ public class BorderView extends View {
     centerX -= WIDTH;
     centerY -= HEIGHT;
 
+    centerY = 72;
+
+    /**
+     * Use drawRect instead of drawLine because the later causes inaccuracies at
+     * the pixel level
+     */
+
     canvas.drawRect(expandLineToRect(centerX, centerY, centerX + 50, centerY),
         mPaint);
     canvas.drawRect(expandLineToRect(centerX, centerY, centerX, centerY + 50),
@@ -42,10 +49,6 @@ public class BorderView extends View {
             + CameraPreview.bottom * BorderView.HEIGHT * 2, mPaint);
     centerX += WIDTH * 2;
 
-    /**
-     * Use drawRect instead of drawLine because the later causes inaccuracies at
-     * the pixel level
-     */
     canvas.drawRect(expandLineToRect(centerX, centerY, centerX - 50, centerY),
         mPaint);
     canvas.drawRect(expandLineToRect(centerX, centerY, centerX, centerY + 50),

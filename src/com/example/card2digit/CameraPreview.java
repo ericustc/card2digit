@@ -26,11 +26,17 @@ public class CameraPreview extends FrameLayout implements
     System.loadLibrary("card2digit");
   }
 
+  public static float left = 28f / 85.6f;
+  public static float right = 76f / 85.6f;
+  public static float top = 44f / 54f;
+  public static float bottom = 49f / 54f;
+
   private SurfaceView mSurfaceView;
   private SurfaceHolder mHolder;
   private Size mPreviewSize;
   private List<Size> mSupportedPreviewSizes;
   private Camera mCamera;
+  private boolean take;
 
   public CameraPreview(Context context) {
     super(context);
@@ -184,13 +190,18 @@ public class CameraPreview extends FrameLayout implements
     mCamera.startPreview();
   }
 
-  private boolean take;
-
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (take) {
       int width = mPreviewSize.width;
       int height = mPreviewSize.height;
+
+      byte[] transposed = MatrixUtils.rotate(data, width, height);
+
+      Log.d("xxx", width + "x" + height);
+
+      width = height;
+      height = mPreviewSize.width;
 
       int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
           / 2 - BorderView.WIDTH)
@@ -198,19 +209,17 @@ public class CameraPreview extends FrameLayout implements
       int r = Math.round((right * BorderView.WIDTH * 2
           + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
           / mSurfaceView.getWidth() * width);
-      int t = Math.round((top * BorderView.HEIGHT * 2
-          + mSurfaceView.getHeight() / 2 - BorderView.HEIGHT)
-          / mSurfaceView.getHeight() * height);
-      int b = Math.round((bottom * BorderView.HEIGHT * 2
-          + mSurfaceView.getHeight() / 2 - BorderView.HEIGHT)
-          / mSurfaceView.getHeight() * height);
+      int t = Math.round(top * BorderView.HEIGHT * 2) + 72;
+      int b = Math.round(bottom * BorderView.HEIGHT * 2) + 72;
+
+      Log.d("xxx", l + " " + r + " " + t + " " + b);
 
       int[] pixels = new int[(r - l) * (b - t)];
       int row = t;
       int column = l;
       int cur = width * t + l;
       for (int i = 0; i < pixels.length; ++i) {
-        int p = data[cur] & 0xFF;
+        int p = transposed[cur] & 0xFF;
         pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
         ++column;
         if (column == r) {
@@ -230,16 +239,11 @@ public class CameraPreview extends FrameLayout implements
       toast.setDuration(Toast.LENGTH_LONG);
       toast.show();
 
-      String result = ocr(data, width, height, l, r, t, b);
+      String result = ocr(transposed, width, height, l, r, t, b);
       Log.d("xxx", "result: " + result);
       take = false;
     }
   }
-
-  public static float left = 28f / 85.6f;
-  public static float right = 76f / 85.6f;
-  public static float top = 44f / 54f;
-  public static float bottom = 49f / 54f;
 
   private native String ocr(byte[] data, int width, int height, int l, int r,
       int t, int b);
