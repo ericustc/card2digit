@@ -57,8 +57,11 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	int t = -1;
 	int b = -1;
 
-	char res[19] = { };
-	res[18] = 0;
+	/**
+	 * ocr at most 19 characters, the string is null terminated
+	 */
+	char res[20] = { };
+	res[19] = 0;
 	int step = 0;
 	for (int i = 0; i < roiWidth; ++i) {
 		bool allWhite = true;
@@ -85,7 +88,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 			res[step] = recognize(area, l, r + 1, t, b + 1);
 			l = -1;
 			++step;
-			if (step == 18) {
+			if (step == 19) {
 				break;
 			}
 		}

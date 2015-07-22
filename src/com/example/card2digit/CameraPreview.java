@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -17,7 +18,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 public class CameraPreview extends FrameLayout implements
     SurfaceHolder.Callback, PreviewCallback {
@@ -212,38 +212,46 @@ public class CameraPreview extends FrameLayout implements
       int t = Math.round(top * BorderView.HEIGHT * 2) + 72;
       int b = Math.round(bottom * BorderView.HEIGHT * 2) + 72;
 
-      Log.d("xxx", l + " " + r + " " + t + " " + b);
+      int[] pixels = MatrixUtils.crop(transposed, width, l, r, t, b);
 
-      int[] pixels = new int[(r - l) * (b - t)];
-      int row = t;
-      int column = l;
-      int cur = width * t + l;
-      for (int i = 0; i < pixels.length; ++i) {
-        int p = transposed[cur] & 0xFF;
-        pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
-        ++column;
-        if (column == r) {
-          column = l;
-          ++row;
-          cur = width * row + column;
-        } else {
-          ++cur;
-        }
-      }
       Bitmap bm = Bitmap.createBitmap(pixels, r - l, b - t,
           Bitmap.Config.ARGB_8888);
       ImageView iv = new ImageView(getContext());
       iv.setImageBitmap(bm);
-      Toast toast = new Toast(getContext());
-      toast.setView(iv);
-      toast.setDuration(Toast.LENGTH_LONG);
-      toast.show();
+      // Toast toast = new Toast(getContext());
+      // toast.setView(iv);
+      // toast.setDuration(Toast.LENGTH_LONG);
+      // toast.show();
 
       String result = ocr(transposed, width, height, l, r, t, b);
-      Log.d("xxx", "result: " + result);
-      take = false;
+      // Log.d("xxx", "result: " + result);
+      if (result != null && result.length() == 18) {
+        if (result.equals(candidate)) {
+          Intent intent = new Intent(getContext(), ResultActivity.class);
+          intent.putExtra("result", result);
+
+          l = Math.round((mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+              / mSurfaceView.getWidth() * width);
+          r = Math
+              .round((BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+                  / mSurfaceView.getWidth() * width);
+          t = 72;
+          b = Math.round(BorderView.HEIGHT * 2) + 72;
+          intent.putExtra("bitmap", Bitmap.createBitmap(
+              MatrixUtils.crop(transposed, width, l, r, t, b), r - l, b - t,
+              Bitmap.Config.ARGB_8888));
+          getContext().startActivity(intent);
+          take = false;
+        } else {
+          candidate = result;
+        }
+      } else {
+        candidate = null;
+      }
     }
   }
+
+  private String candidate;
 
   private native String ocr(byte[] data, int width, int height, int l, int r,
       int t, int b);
