@@ -14,7 +14,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	// ROI: region of interest, where the alphanumeric text is located
 	int roiWidth = right - left;
 	int roiHeight = bottom - top;
-	mat area(roiWidth, roiHeight);
+	mat<bool> area(roiWidth, roiHeight);
 	int row = top;
 	int column = left;
 	int cur = width * top + left;
@@ -110,7 +110,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	return env->NewStringUTF(res);
 }
 
-char recognize(mat &pixel, int l, int r, int t, int b) {
+char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
 	static unsigned short glyph[11][13] = { { 0x3C, 0x7E, 0xC3, 0xC3, 0xC3,
 			0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0x7E, 0x3C }, // 0
 
@@ -172,7 +172,7 @@ char recognize(mat &pixel, int l, int r, int t, int b) {
 	return max == 10 ? 'X' : '0' + max;
 }
 
-float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
+float compare(unsigned short glyph[], mat<bool> &pixel, int l, int r, int t, int b,
 		float ratio) {
 	int shift = glyph[0] > 0xFF ? 16 : 8;
 	int hit = 0;
