@@ -20,6 +20,8 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	int cur = width * top + left;
 	jbyte *pixel = env->GetByteArrayElements(data, 0);
 
+
+
 	int histogram[256] = {};
 	for (int i = 0; i < area.size(); ++i) {
 		histogram[pixel[cur] & 0xFF]++;
@@ -41,7 +43,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	cur = width * top + left;
 	// The first width*height bytes are from Y Channel, which are what we need
 	for (int i = 0; i < area.size(); ++i) {
-		area[i] = (pixel[cur] & 0xFF) < threshold; // The Y channel ranges from 0 to 255. We use 64 as the threshold
+		area[i] = (pixel[cur] & 0xFF) < threshold; // The Y channel ranges from 0 to 255
 		++column;
 		if (column == right) {
 			column = left;
