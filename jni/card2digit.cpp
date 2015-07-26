@@ -20,8 +20,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	int cur = width * top + left;
 	jbyte *pixel = env->GetByteArrayElements(data, 0);
 
-
-
 	int histogram[256] = {};
 	for (int i = 0; i < area.size(); ++i) {
 		histogram[pixel[cur] & 0xFF]++;

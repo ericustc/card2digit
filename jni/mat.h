@@ -6,7 +6,7 @@ private:
 	int _width;
 	int _height;
 public:
-	mat(int width, int height) {
+	mat(int width, int height) : std::vector<T>(width * height) {
 		_width = width;
 		_height = height;
 	}
@@ -18,8 +18,9 @@ public:
 	}
 };
 
-char recognize(mat &pixel, int l, int r, int t, int b);
-float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
+char recognize(mat<bool> &pixel, int l, int r, int t, int b);
+
+float compare(unsigned short glyph[], mat<bool> &pixel, int l, int r, int t, int b,
 		float ratio);
 
 /*
@@ -27,3 +28,5 @@ float compare(unsigned short glyph[], mat &pixel, int l, int r, int t, int b,
  * https://en.wikipedia.org/wiki/Otsu%27s_method
  */
 int otsu(int histogram[], int total);
+
+void crop(mat<signed char> &pixel, int width, int height, int l, int r, int t, int b);
