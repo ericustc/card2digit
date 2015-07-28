@@ -29,4 +29,5 @@ float compare(unsigned short glyph[], mat<bool> &pixel, int l, int r, int t, int
  */
 int otsu(int histogram[], int total);
 
-void crop(mat<signed char> &pixel, int width, int height, int l, int r, int t, int b);
+template <class T>
+void crop(mat<T> &pixel, int width, int height, int l, int r, int t, int b);
