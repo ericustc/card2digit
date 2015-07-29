@@ -18,6 +18,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 public class CameraPreview extends FrameLayout implements
     SurfaceHolder.Callback, PreviewCallback {
@@ -36,7 +37,6 @@ public class CameraPreview extends FrameLayout implements
   private Size mPreviewSize;
   private List<Size> mSupportedPreviewSizes;
   private Camera mCamera;
-  private boolean take;
 
   public CameraPreview(Context context) {
     super(context);
@@ -53,13 +53,6 @@ public class CameraPreview extends FrameLayout implements
     addView(mSurfaceView);
     BorderView borderView = new BorderView(getContext());
     addView(borderView);
-    borderView.setOnClickListener(new OnClickListener() {
-
-      @Override
-      public void onClick(View v) {
-        take = true;
-      }
-    });
 
     mHolder = mSurfaceView.getHolder();
     mHolder.addCallback(this);
@@ -192,62 +185,56 @@ public class CameraPreview extends FrameLayout implements
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (take) {
-      int width = mPreviewSize.width;
-      int height = mPreviewSize.height;
+    int width = mPreviewSize.width;
+    int height = mPreviewSize.height;
 
-      byte[] transposed = MatrixUtils.rotate(data, width, height);
+    byte[] rotated = MatrixUtils.rotate(data, width, height);
 
-      Log.d("xxx", width + "x" + height);
+    width = height;
+    height = mPreviewSize.width;
 
-      width = height;
-      height = mPreviewSize.width;
+    int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
+        / 2 - BorderView.WIDTH)
+        / mSurfaceView.getWidth() * width);
+    int r = Math.round((right * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
+        / 2 - BorderView.WIDTH)
+        / mSurfaceView.getWidth() * width);
+    int t = Math.round(top * BorderView.HEIGHT * 2) + 72;
+    int b = Math.round(bottom * BorderView.HEIGHT * 2) + 72;
 
-      int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
-          / 2 - BorderView.WIDTH)
-          / mSurfaceView.getWidth() * width);
-      int r = Math.round((right * BorderView.WIDTH * 2
-          + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
-          / mSurfaceView.getWidth() * width);
-      int t = Math.round(top * BorderView.HEIGHT * 2) + 72;
-      int b = Math.round(bottom * BorderView.HEIGHT * 2) + 72;
+    int[] pixels = MatrixUtils.crop(rotated, width, l, r, t, b);
 
-      int[] pixels = MatrixUtils.crop(transposed, width, l, r, t, b);
+    Bitmap bm = Bitmap.createBitmap(pixels, r - l, b - t,
+        Bitmap.Config.ARGB_8888);
+    ImageView iv = new ImageView(getContext());
+    iv.setImageBitmap(bm);
+    Toast toast = new Toast(getContext());
+    toast.setView(iv);
+    toast.setDuration(Toast.LENGTH_LONG);
+    // toast.show();
 
-      Bitmap bm = Bitmap.createBitmap(pixels, r - l, b - t,
-          Bitmap.Config.ARGB_8888);
-      ImageView iv = new ImageView(getContext());
-      iv.setImageBitmap(bm);
-      // Toast toast = new Toast(getContext());
-      // toast.setView(iv);
-      // toast.setDuration(Toast.LENGTH_LONG);
-      // toast.show();
+    String result = ocr(rotated, width, height, l, r, t, b);
+    if (result != null && result.length() == 18) {
+      if (result.equals(candidate)) {
+        Intent intent = new Intent(getContext(), ResultActivity.class);
+        intent.putExtra("text", result);
 
-      String result = ocr(transposed, width, height, l, r, t, b);
-      // Log.d("xxx", "result: " + result);
-      if (result != null && result.length() == 18) {
-        if (result.equals(candidate)) {
-          Intent intent = new Intent(getContext(), ResultActivity.class);
-          intent.putExtra("result", result);
-
-          l = Math.round((mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
-              / mSurfaceView.getWidth() * width);
-          r = Math
-              .round((BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
-                  / mSurfaceView.getWidth() * width);
-          t = 72;
-          b = Math.round(BorderView.HEIGHT * 2) + 72;
-          intent.putExtra("bitmap", Bitmap.createBitmap(
-              MatrixUtils.crop(transposed, width, l, r, t, b), r - l, b - t,
-              Bitmap.Config.ARGB_8888));
-          getContext().startActivity(intent);
-          take = false;
-        } else {
-          candidate = result;
-        }
+        l = Math.round((mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+            / mSurfaceView.getWidth() * width);
+        r = Math
+            .round((BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+                / mSurfaceView.getWidth() * width);
+        t = 72;
+        b = Math.round(BorderView.HEIGHT * 2) + 72;
+        intent.putExtra("bitmap", Bitmap.createBitmap(
+            MatrixUtils.crop(rotated, width, l, r, t, b), r - l, b - t,
+            Bitmap.Config.ARGB_8888));
+        getContext().startActivity(intent);
       } else {
-        candidate = null;
+        candidate = result;
       }
+    } else {
+      candidate = null;
     }
   }
 
