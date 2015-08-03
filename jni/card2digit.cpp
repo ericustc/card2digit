@@ -45,13 +45,15 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		}
 	}
 
-
 	__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "max Laplacian: %d", maxLaplacian);
 	if (maxLaplacian < 500) {
 //		env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
 //		return NULL;
 	}
 
+	row = top;
+	column = left;
+	cur = width * top + left;
 	int histogram[256] = {};
 	for (int i = 0; i < area.size(); ++i) {
 		histogram[pixel[cur] & 0xFF]++;
