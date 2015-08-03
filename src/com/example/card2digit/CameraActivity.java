@@ -33,6 +33,8 @@ public class CameraActivity extends Activity {
     super.onPause();
     if (mCamera != null) {
       mPreview.setCamera(null);
+      mCamera.setPreviewCallback(null);
+      mCamera.stopPreview();
       mCamera.release();
       mCamera = null;
     }
