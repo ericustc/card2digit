@@ -13,12 +13,16 @@ public class BorderView extends View {
   public static final float HEIGHT = 135f;
   private static final int HALF_STROKE_WIDTH = 4;
   private Paint mPaint;
+  private Paint mSlimPaint;
 
   public BorderView(Context context) {
     super(context);
     mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     mPaint.setColor(Color.GREEN);
     mPaint.setStrokeWidth(HALF_STROKE_WIDTH * 2);
+    mSlimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    mSlimPaint.setColor(Color.GREEN);
+    mSlimPaint.setStrokeWidth(1f);
   }
 
   @Override
@@ -42,11 +46,13 @@ public class BorderView extends View {
         mPaint);
 
     canvas.drawLine(centerX + CameraPreview.left * BorderView.WIDTH * 2,
-        centerY + CameraPreview.top * BorderView.HEIGHT * 2, getWidth(),
-        centerY + CameraPreview.top * BorderView.HEIGHT * 2, mPaint);
-    canvas.drawLine(centerX + CameraPreview.right * BorderView.WIDTH * 2,
-        centerY + CameraPreview.bottom * BorderView.HEIGHT * 2, 0, centerY
-            + CameraPreview.bottom * BorderView.HEIGHT * 2, mPaint);
+        centerY + CameraPreview.top * BorderView.HEIGHT * 2,
+        centerX + CameraPreview.right * BorderView.WIDTH * 2,
+        centerY + CameraPreview.top * BorderView.HEIGHT * 2, mSlimPaint);
+    canvas.drawLine(centerX + CameraPreview.left * BorderView.WIDTH * 2,
+        centerY + CameraPreview.bottom * BorderView.HEIGHT * 2,
+        centerX + CameraPreview.right * BorderView.WIDTH * 2,
+        centerY + CameraPreview.bottom * BorderView.HEIGHT * 2, mSlimPaint);
     centerX += WIDTH * 2;
 
     canvas.drawRect(expandLineToRect(centerX, centerY, centerX - 50, centerY),
