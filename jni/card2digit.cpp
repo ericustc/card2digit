@@ -10,24 +10,14 @@ using namespace std;
 
 JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		JNIEnv *env, jobject obj, jbyteArray data, jint width, jint height) {
-	// ROI: region of interest, where the alphanumeric text is located
-	mat<bool> area(width, height);
-	int row = 0;
-	int column = 0;
-	int cur = 0;
+
 	jbyte *pixel = env->GetByteArrayElements(data, 0);
 
+	const int area = width * height;
+
 	mat<int> grayscaleMat(width, height);
-	for (int i = 0; i < grayscaleMat.size(); ++i) {
-		grayscaleMat[i] = pixel[cur] & 0xFF;
-		++column;
-		if (column == width) {
-			column = 0;
-			++row;
-			cur = width * row + column;
-		} else {
-			++cur;
-		}
+	for (int i = 0; i < area; ++i) {
+		grayscaleMat[i] = pixel[i] & 0xFF;
 	}
 
 	int maxLaplacian = 0;
@@ -48,39 +38,22 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 //		return NULL;
 	}
 
-	row = 0;
-	column = 0;
-	cur = 0;
 	int histogram[256] = {};
-	for (int i = 0; i < area.size(); ++i) {
-		histogram[pixel[cur] & 0xFF]++;
-		++column;
-		if (column == width) {
-			column = 0;
-			++row;
-			cur = width * row + column;
-		} else {
-			++cur;
-		}
+	for (int i = 0; i < area; ++i) {
+		histogram[pixel[i] & 0xFF]++;
 	}
-	int threshold = otsu(histogram, area.size());
+
+	int threshold = otsu(histogram, area);
 
 	__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "threshold: %d", threshold);
 
-	row = 0;
-	column = 0;
-	cur = 0;
+
+	mat<bool> binaryMat(width, height);
+
 	// The first width*height bytes are from Y Channel, which are what we need
-	for (int i = 0; i < area.size(); ++i) {
-		area[i] = (pixel[cur] & 0xFF) < threshold; // The Y channel ranges from 0 to 255
-		++column;
-		if (column == width) {
-			column = 0;
-			++row;
-			cur = width * row + column;
-		} else {
-			++cur;
-		}
+
+	for (int i = 0; i < area; ++i) {
+		binaryMat[i] = (pixel[i] & 0xFF) < threshold; // The Y channel ranges from 0 to 255
 	}
 
 	int l = -1;
@@ -97,7 +70,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 	for (int i = 0; i < width; ++i) {
 		bool allWhite = true;
 		for (int j = 0; j < height; ++j) {
-			if (area.at(i, j)) {
+			if (binaryMat.at(i, j)) {
 				allWhite = false;
 				r = i;
 				if (l == -1) {
@@ -116,7 +89,7 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 			}
 		}
 		if (allWhite && l != -1) {
-			res[step] = recognize(area, l, r + 1, t, b + 1);
+			res[step] = recognize(binaryMat, l, r + 1, t, b + 1);
 			l = -1;
 			++step;
 			if (step == 19) {
@@ -125,14 +98,14 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		}
 	}
 	if (l != -1) {
-		res[step] = recognize(area, l, r + 1, t, b + 1);
+		res[step] = recognize(binaryMat, l, r + 1, t, b + 1);
 		++step;
 	}
 
 	for (int i = 0; i < height; ++i) {
 		string s;
 		for (int j = 0; j < 50; ++j) {
-			s += area.at(j, i) ? "0" : "-";
+			s += binaryMat.at(j, i) ? "0" : "-";
 		}
 		__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%s", s.c_str());
 	}
