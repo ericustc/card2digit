@@ -152,6 +152,19 @@ char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
 
 	float ratio = (b - t) / 13.0f;
 
+	FILE * pFile = fopen ("/sdcard/training.data","a");
+	if (pFile!=NULL) {
+	    fprintf(pFile, "%d %d\n", r - l, b - t);
+	    for (int i = t; i < b; ++i) {
+	    	string s;
+	    	for (int j = l; j < r; ++j) {
+	    		s += pixel.at(j, i) ? "1" : "0";
+	    	}
+	    	fprintf(pFile, "%s\n", s.c_str());
+	    }
+	    fclose(pFile);
+	}
+
 	float grade = 0.0f;
 	int max = -1;
 	__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%d, %d, %d, %d, %f", l, r,
