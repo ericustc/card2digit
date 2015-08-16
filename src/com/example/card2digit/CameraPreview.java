@@ -20,8 +20,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class CameraPreview extends FrameLayout implements
-    SurfaceHolder.Callback, PreviewCallback {
+public class CameraPreview extends FrameLayout
+    implements SurfaceHolder.Callback, PreviewCallback {
 
   static {
     System.loadLibrary("card2digit");
@@ -37,6 +37,9 @@ public class CameraPreview extends FrameLayout implements
   private Size mPreviewSize;
   private List<Size> mSupportedPreviewSizes;
   private Camera mCamera;
+  private boolean takeOneShot;
+  private String candidate;
+  private BorderView mBorderView;
 
   public CameraPreview(Context context) {
     super(context);
@@ -51,12 +54,19 @@ public class CameraPreview extends FrameLayout implements
   private void init() {
     mSurfaceView = new SurfaceView(getContext());
     addView(mSurfaceView);
-    BorderView borderView = new BorderView(getContext());
-    addView(borderView);
+    mBorderView = new BorderView(getContext());
+    addView(mBorderView);
 
     mHolder = mSurfaceView.getHolder();
     mHolder.addCallback(this);
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    setOnClickListener(new OnClickListener() {
+
+      @Override
+      public void onClick(View v) {
+        takeOneShot = true;
+      }
+    });
   }
 
   public void setCamera(Camera camera) {
@@ -119,7 +129,7 @@ public class CameraPreview extends FrameLayout implements
         mCamera.setPreviewCallback(this);
       }
     } catch (IOException exception) {
-      Log.e("xxx", "IOException caused by setPreviewDisplay()", exception);
+
     }
   }
 
@@ -193,14 +203,18 @@ public class CameraPreview extends FrameLayout implements
     width = height;
     height = mPreviewSize.width;
 
-    int l = Math.round((left * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
-        / 2 - BorderView.WIDTH)
+    int l = Math.round((left * mBorderView.getBoundingBoxWidth()
+        + mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
         / mSurfaceView.getWidth() * width);
-    int r = Math.round((right * BorderView.WIDTH * 2 + mSurfaceView.getWidth()
-        / 2 - BorderView.WIDTH)
+    int r = Math.round((right * mBorderView.getBoundingBoxWidth()
+        + mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
         / mSurfaceView.getWidth() * width);
-    int t = Math.round(top * BorderView.HEIGHT * 2) + 72;
-    int b = Math.round(bottom * BorderView.HEIGHT * 2) + 72;
+    int t = Math.round(top * mBorderView.getBoundingBoxHeight())
+        + mSurfaceView.getHeight() / 2
+        - Math.round(mBorderView.getBoundingBoxHeight() / 2);
+    int b = Math.round(bottom * mBorderView.getBoundingBoxHeight())
+        + mSurfaceView.getHeight() / 2
+        - Math.round(mBorderView.getBoundingBoxHeight() / 2);
 
     int[] pixels = MatrixUtils.crop(rotated, width, l, r, t, b);
 
@@ -211,24 +225,32 @@ public class CameraPreview extends FrameLayout implements
     Toast toast = new Toast(getContext());
     toast.setView(iv);
     toast.setDuration(Toast.LENGTH_LONG);
-    // toast.show();
 
-    String result = ocr(rotated, width, height, l, r, t, b);
+    String result = "";
+    if (takeOneShot) {
+      toast.show();
+      result = ocr(rotated, width, height, l, r, t, b);
+      Log.d("xxx", "result: " + result);
+      takeOneShot = false;
+    }
+
     if (result != null && result.length() == 18) {
       if (result.equals(candidate)) {
         Intent intent = new Intent(getContext(), ResultActivity.class);
         intent.putExtra("text", result);
-
-        l = Math.round((mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
-            / mSurfaceView.getWidth() * width);
-        r = Math
-            .round((BorderView.WIDTH * 2 + mSurfaceView.getWidth() / 2 - BorderView.WIDTH)
+        l = Math.round((mSurfaceView.getWidth() / 2
+            - mBorderView.getBoundingBoxWidth() / 2) / mSurfaceView.getWidth()
+            * width);
+        r = Math.round(
+            (mBorderView.getBoundingBoxWidth() + mSurfaceView.getWidth() / 2
+                - mBorderView.getBoundingBoxWidth() / 2)
                 / mSurfaceView.getWidth() * width);
-        t = 72;
-        b = Math.round(BorderView.HEIGHT * 2) + 72;
-        intent.putExtra("bitmap", Bitmap.createBitmap(
-            MatrixUtils.crop(rotated, width, l, r, t, b), r - l, b - t,
-            Bitmap.Config.ARGB_8888));
+        t = mSurfaceView.getHeight() / 2
+            - Math.round(mBorderView.getBoundingBoxHeight() / 2);
+        b = t + Math.round(mBorderView.getBoundingBoxHeight());
+        intent.putExtra("bitmap",
+            Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
+                r - l, b - t, Bitmap.Config.ARGB_8888));
         getContext().startActivity(intent);
       } else {
         candidate = result;
@@ -236,9 +258,8 @@ public class CameraPreview extends FrameLayout implements
     } else {
       candidate = null;
     }
-  }
 
-  private String candidate;
+  }
 
   private native String ocr(byte[] data, int width, int height, int l, int r,
       int t, int b);
