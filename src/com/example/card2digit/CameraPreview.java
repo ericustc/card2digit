@@ -94,15 +94,13 @@ public class CameraPreview extends FrameLayout
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
     if (changed && getChildCount() > 0) {
 
-      final View child = getChildAt(0);
-
       final int width = r - l;
       final int height = b - t;
 
       int previewWidth = width;
       int previewHeight = height;
 
-      getChildAt(1).layout(0, 0, width, height);
+      mBorderView.layout(0, 0, width, height);
 
       if (mPreviewSize != null) {
         previewWidth = mPreviewSize.height;
@@ -111,11 +109,11 @@ public class CameraPreview extends FrameLayout
 
       if (width * previewHeight < height * previewWidth) {
         final int scaledChildWidth = previewWidth * height / previewHeight;
-        child.layout((width - scaledChildWidth) / 2, 0,
+        mSurfaceView.layout((width - scaledChildWidth) / 2, 0,
             (width + scaledChildWidth) / 2, height);
       } else {
         final int scaledChildHeight = previewHeight * width / previewWidth;
-        child.layout(0, (height - scaledChildHeight) / 2, width,
+        mSurfaceView.layout(0, (height - scaledChildHeight) / 2, width,
             (height + scaledChildHeight) / 2);
       }
     }
@@ -229,7 +227,8 @@ public class CameraPreview extends FrameLayout
     String result = "";
     if (takeOneShot) {
       toast.show();
-      result = ocr(rotated, width, height, l, r, t, b);
+      result = ocr(MatrixUtils.cropByte(rotated, width, l, r, t, b), r - l,
+          b - t);
       Log.d("xxx", "result: " + result);
       takeOneShot = false;
     }
@@ -261,7 +260,6 @@ public class CameraPreview extends FrameLayout
 
   }
 
-  private native String ocr(byte[] data, int width, int height, int l, int r,
-      int t, int b);
+  private native String ocr(byte[] data, int width, int height);
 
 }

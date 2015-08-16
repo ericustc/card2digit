@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ([BII)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr
-  (JNIEnv *, jobject, jbyteArray, jint, jint, jint, jint, jint, jint);
+  (JNIEnv *, jobject, jbyteArray, jint, jint);
 
 #ifdef __cplusplus
 }

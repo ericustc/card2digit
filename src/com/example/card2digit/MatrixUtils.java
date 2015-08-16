@@ -3,7 +3,7 @@ package com.example.card2digit;
 public class MatrixUtils {
 
   /**
-   * 
+   *
    * @param matrix
    * @param width
    *          转置前的宽度
@@ -39,6 +39,26 @@ public class MatrixUtils {
     for (int i = 0; i < pixels.length; ++i) {
       int p = data[cur] & 0xFF;
       pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
+      ++column;
+      if (column == r) {
+        column = l;
+        ++row;
+        cur = width * row + column;
+      } else {
+        ++cur;
+      }
+    }
+    return pixels;
+  }
+
+  public static byte[] cropByte(byte[] data, int width, int l, int r, int t,
+      int b) {
+    byte[] pixels = new byte[(r - l) * (b - t)];
+    int row = t;
+    int column = l;
+    int cur = width * t + l;
+    for (int i = 0; i < pixels.length; ++i) {
+      pixels[i] = data[cur];
       ++column;
       if (column == r) {
         column = l;
