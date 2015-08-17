@@ -41,9 +41,9 @@ public class BorderView extends View {
     super.onDraw(canvas);
     int centerX = getWidth() / 2;
     int centerY = getHeight() / 2;
-    if (getWidth() < ViewUtils.convertDpToPixels(300, getContext())) {
+    if (getWidth() < ViewUtils.convertDpToPixels(324, getContext())) {
       boundingBoxWidth = getWidth()
-          - ViewUtils.convertDpToPixels(10, getContext());
+          - ViewUtils.convertDpToPixels(24, getContext());
     } else {
       boundingBoxWidth = ViewUtils.convertDpToPixels(300, getContext());
     }
