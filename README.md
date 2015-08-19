@@ -1,5 +1,5 @@
 # card2digit
-Simple alphanumeric OCR for identity cards
+Easy alphanumeric OCR for identity cards
 
 ## Features
 * Client-side OCR, no internet connection needed
