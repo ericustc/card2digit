@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -16,6 +15,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -37,9 +37,11 @@ public class CameraPreview extends FrameLayout
   private Size mPreviewSize;
   private List<Size> mSupportedPreviewSizes;
   private Camera mCamera;
-  private boolean takeOneShot;
+  private boolean takeShot;
   private String candidate;
   private BorderView mBorderView;
+  private Button mButton;
+  private int mNum;
 
   public CameraPreview(Context context) {
     super(context);
@@ -60,11 +62,18 @@ public class CameraPreview extends FrameLayout
     mHolder = mSurfaceView.getHolder();
     mHolder.addCallback(this);
     mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-    setOnClickListener(new OnClickListener() {
-
+    mButton = new Button(getContext());
+    addView(mButton);
+    mButton.setText(R.string.start);
+    mButton.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        takeOneShot = true;
+        if (takeShot) {
+          mButton.setText(R.string.start);
+          takeShot = false;
+        } else {
+          takeShot = true;
+        }
       }
     });
   }
@@ -92,7 +101,7 @@ public class CameraPreview extends FrameLayout
 
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    if (changed && getChildCount() > 0) {
+    if (changed) {
 
       final int width = r - l;
       final int height = b - t;
@@ -101,6 +110,11 @@ public class CameraPreview extends FrameLayout
       int previewHeight = height;
 
       mBorderView.layout(0, 0, width, height);
+
+      mButton.layout(0,
+          getHeight()
+              - Math.round(ViewUtils.convertDpToPixels(48, getContext())),
+          getWidth(), getHeight());
 
       if (mPreviewSize != null) {
         previewWidth = mPreviewSize.height;
@@ -225,38 +239,39 @@ public class CameraPreview extends FrameLayout
     toast.setDuration(Toast.LENGTH_LONG);
 
     String result = "";
-    if (takeOneShot) {
-      toast.show();
+    if (takeShot) {
       result = ocr(MatrixUtils.cropByte(rotated, width, l, r, t, b), r - l,
           b - t);
       Log.d("xxx", "result: " + result);
-      takeOneShot = false;
+      mNum++;
+      mButton.setText(
+          mNum + " picture" + (mNum > 1 ? "s" : "") + " taken, click to stop");
     }
 
-    if (result != null && result.length() == 18) {
-      if (result.equals(candidate)) {
-        Intent intent = new Intent(getContext(), ResultActivity.class);
-        intent.putExtra("text", result);
-        l = Math.round((mSurfaceView.getWidth() / 2
-            - mBorderView.getBoundingBoxWidth() / 2) / mSurfaceView.getWidth()
-            * width);
-        r = Math.round(
-            (mBorderView.getBoundingBoxWidth() + mSurfaceView.getWidth() / 2
-                - mBorderView.getBoundingBoxWidth() / 2)
-                / mSurfaceView.getWidth() * width);
-        t = mSurfaceView.getHeight() / 2
-            - Math.round(mBorderView.getBoundingBoxHeight() / 2);
-        b = t + Math.round(mBorderView.getBoundingBoxHeight());
-        intent.putExtra("bitmap",
-            Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
-                r - l, b - t, Bitmap.Config.ARGB_8888));
-        getContext().startActivity(intent);
-      } else {
-        candidate = result;
-      }
-    } else {
-      candidate = null;
-    }
+    // if (result != null && result.length() == 18) {
+    // if (result.equals(candidate)) {
+    // Intent intent = new Intent(getContext(), ResultActivity.class);
+    // intent.putExtra("text", result);
+    // l = Math.round((mSurfaceView.getWidth() / 2
+    // - mBorderView.getBoundingBoxWidth() / 2) / mSurfaceView.getWidth()
+    // * width);
+    // r = Math.round(
+    // (mBorderView.getBoundingBoxWidth() + mSurfaceView.getWidth() / 2
+    // - mBorderView.getBoundingBoxWidth() / 2)
+    // / mSurfaceView.getWidth() * width);
+    // t = mSurfaceView.getHeight() / 2
+    // - Math.round(mBorderView.getBoundingBoxHeight() / 2);
+    // b = t + Math.round(mBorderView.getBoundingBoxHeight());
+    // intent.putExtra("bitmap",
+    // Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
+    // r - l, b - t, Bitmap.Config.ARGB_8888));
+    // getContext().startActivity(intent);
+    // } else {
+    // candidate = result;
+    // }
+    // } else {
+    // candidate = null;
+    // }
 
   }
 

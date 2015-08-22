@@ -158,7 +158,7 @@ char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
 	    for (int i = t; i < b; ++i) {
 	    	string s;
 	    	for (int j = l; j < r; ++j) {
-	    		s += pixel.at(j, i) ? "1" : "0";
+	    		s += pixel.at(j, i) ? "+" : "-";
 	    	}
 	    	fprintf(pFile, "%s\n", s.c_str());
 	    }
@@ -194,19 +194,16 @@ float compare(unsigned short glyph[], mat<bool> &pixel, int l, int r, int t, int
 	int shift = glyph[0] > 0xFF ? 16 : 8;
 	int hit = 0;
 	for (int i = t; i < b; ++i) {
-		string s;
 		for (int j = l; j < r; ++j) {
 			int x = (int) ((j - l) / ratio);
 			bool flag =
 					x < shift
 							&& (glyph[(int) ((i - t) / ratio)]
 									& (1 << (shift - 1 - x)));
-			s += flag ? "0" : "-";
 			if (!(pixel.at(j, i) ^ flag)) {
 				++hit;
 			}
 		}
-		__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "%s", s.c_str());
 	}
 	return hit / ((float) (r - l) * (b - t));
 }
