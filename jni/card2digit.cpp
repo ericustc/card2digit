@@ -5,6 +5,7 @@
 #include <android/log.h>
 #include "card2digit.h"
 #include "mat.h"
+#include "svm.h"
 
 using namespace std;
 
@@ -89,7 +90,23 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 }
 
 char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
-	return '0';
+	static svm_model *model = svm_load_model("/sdcard/card2digit.model");
+
+	double prob_estimates[11];
+
+	svm_node x[131];
+
+	int result = svm_predict_probability(model, x, prob_estimates);
+
+	if (prob_estimates[result] > 0.9) {
+		for (int i = 0; i < 11; ++i) {
+			if (i != result && prob_estimates[i] > 0.5) {
+				return 0;
+			}
+		}
+		return result == 10 ? 'X' : ('0' + result);
+	}
+	return 0;
 }
 
 int otsu(int histogram[], int total) {
