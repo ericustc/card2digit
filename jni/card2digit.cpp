@@ -20,24 +20,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 		grayscaleMat[i] = pixel[i] & 0xFF;
 	}
 
-	int maxLaplacian = 0;
-	for (int i = 0; i < width - 2; ++i) {
-		for (int j = 0; j < height - 2; ++j) {
-			int value = grayscaleMat.at(i + 1, j) + grayscaleMat.at(i + 1, j + 2) +
-					grayscaleMat.at(i, j + 1) + grayscaleMat.at(i + 2, j + 1)
-					- grayscaleMat.at(i + 1, j + 1);
-			if (maxLaplacian < value) {
-				maxLaplacian = value;
-			}
-		}
-	}
-
-	__android_log_print(ANDROID_LOG_VERBOSE, "xxx", "max Laplacian: %d", maxLaplacian);
-	if (maxLaplacian < 500) {
-//		env->ReleaseByteArrayElements(data, pixel, JNI_ABORT);
-//		return NULL;
-	}
-
 	int histogram[256] = {};
 	for (int i = 0; i < area; ++i) {
 		histogram[pixel[i] & 0xFF]++;
