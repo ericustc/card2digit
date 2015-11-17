@@ -6,9 +6,9 @@ public class MatrixUtils {
    *
    * @param matrix
    * @param width
-   *          转置前的宽度
+   *          Before the rotation
    * @param height
-   *          转置前的高度
+   *          Before the rotation
    * @return
    */
   public static byte[] rotate(byte[] matrix, int width, int height) {
