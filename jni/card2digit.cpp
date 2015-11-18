@@ -28,8 +28,6 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 
   int threshold = otsu(histogram, area);
 
-  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "threshold: %d", threshold);
-
   mat<bool> binaryMat(width, height);
 
   // The first width*height bytes are from Y Channel, which are what we need
