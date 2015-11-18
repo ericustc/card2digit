@@ -89,23 +89,57 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 }
 
 char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
+
   static svm_model *model = svm_load_model("/sdcard/card2digit.model");
 
   double prob_estimates[11];
 
-  svm_node x[131];
+  svm_node input[131];
 
-  int result = svm_predict_probability(model, x, prob_estimates);
+  int multiplier = b - t;
+  const int multiplier_squared = multiplier * multiplier;
 
-  if (prob_estimates[result] > 0.9) {
-    for (int i = 0; i < 11; ++i) {
-      if (i != result && prob_estimates[i] > 0.5) {
-        return 0;
+  for (int y = 0; y < 13; ++y) {
+    for (int x = 0; x < 10; ++x) {
+      int sum = 0;
+      int base_x = x * multiplier;
+      int base_y = y * multiplier;
+      for (int i = 0; i < multiplier; ++i) {
+        for (int j = 0; j < multiplier; ++j) {
+          int ox = (base_x + i) / 13 + l;
+          int oy = (base_y + j) / 13 + t;
+          if (ox < r && oy < b && pixel.at(ox, oy)) {
+            ++sum;
+          }
+        }
       }
+      int index = y * 10 + x;
+      input[index].index = index + 1;
+      input[index].value = sum >= multiplier_squared ? 1 : 0;
     }
-    return result == 10 ? 'X' : ('0' + result);
   }
-  return 0;
+  input[130].index = -1;
+
+  int result = svm_predict_probability(model, input, prob_estimates);
+
+  const int number_of_class = svm_get_nr_class(model);
+
+  int label[number_of_class];
+
+  svm_get_labels(model, label);
+
+
+  for (int i = 0; i < number_of_class; ++i) {
+//  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "i: %d, label %d, p: %f", i, label[i], prob_estimates[i]);
+    if (label[i] == result) {
+      if (prob_estimates[i] < 0.5) {
+        return '\0';
+      }
+    } else if (prob_estimates[i] > 0.5) {
+      return '\0';
+    }
+  }
+  return '0' + result;
 }
 
 int otsu(int histogram[], int total) {

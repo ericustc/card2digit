@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -246,32 +247,26 @@ public class CameraPreview extends FrameLayout
       mNum++;
       mButton.setText(
           mNum + " picture" + (mNum > 1 ? "s" : "") + " taken, click to stop");
+      takeShot = false;
     }
 
-    // if (result != null && result.length() == 18) {
-    // if (result.equals(candidate)) {
-    // Intent intent = new Intent(getContext(), ResultActivity.class);
-    // intent.putExtra("text", result);
-    // l = Math.round((mSurfaceView.getWidth() / 2
-    // - mBorderView.getBoundingBoxWidth() / 2) / mSurfaceView.getWidth()
-    // * width);
-    // r = Math.round(
-    // (mBorderView.getBoundingBoxWidth() + mSurfaceView.getWidth() / 2
-    // - mBorderView.getBoundingBoxWidth() / 2)
-    // / mSurfaceView.getWidth() * width);
-    // t = mSurfaceView.getHeight() / 2
-    // - Math.round(mBorderView.getBoundingBoxHeight() / 2);
-    // b = t + Math.round(mBorderView.getBoundingBoxHeight());
-    // intent.putExtra("bitmap",
-    // Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
-    // r - l, b - t, Bitmap.Config.ARGB_8888));
-    // getContext().startActivity(intent);
-    // } else {
-    // candidate = result;
-    // }
-    // } else {
-    // candidate = null;
-    // }
+    if (result != null && result.length() == 18) {
+      Intent intent = new Intent(getContext(), ResultActivity.class);
+      intent.putExtra("text", result);
+      l = Math.round(
+          (mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
+              / mSurfaceView.getWidth() * width);
+      r = Math.round((mBorderView.getBoundingBoxWidth()
+          + mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
+          / mSurfaceView.getWidth() * width);
+      t = mSurfaceView.getHeight() / 2
+          - Math.round(mBorderView.getBoundingBoxHeight() / 2);
+      b = t + Math.round(mBorderView.getBoundingBoxHeight());
+      intent.putExtra("bitmap",
+          Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
+              r - l, b - t, Bitmap.Config.ARGB_8888));
+      getContext().startActivity(intent);
+    }
 
   }
 
