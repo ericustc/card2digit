@@ -44,16 +44,16 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
   int b = -1;
 
   /**
-   * ocr at most 19 characters, the string is null terminated
+   * ocr at most 18 characters, the string is null terminated
    */
-  char res[20] = { };
-  res[19] = 0;
+  char res[19] = { };
+  res[18] = 0;
   int step = 0;
   for (int i = 0; i < width; ++i) {
-    bool allWhite = true;
+    bool all_white = true;
     for (int j = 0; j < height; ++j) {
       if (binaryMat.at(i, j)) {
-        allWhite = false;
+        all_white = false;
         r = i;
         if (l == -1) {
           l = i;
@@ -70,11 +70,11 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
         }
       }
     }
-    if (allWhite && l != -1) {
+    if (all_white && l != -1) {
       res[step] = recognize(binaryMat, l, r + 1, t, b + 1);
       l = -1;
       ++step;
-      if (step == 19) {
+      if (step == 18) {
         break;
       }
     }
