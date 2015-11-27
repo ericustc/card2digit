@@ -2,7 +2,10 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <iostream>
+#include <fstream>
 #include <android/log.h>
+
 #include "card2digit.h"
 #include "mat.h"
 #include "svm.h"
@@ -88,7 +91,14 @@ JNIEXPORT jstring JNICALL Java_com_example_card2digit_CameraPreview_ocr(
 
 char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
 
-  static svm_model *model = svm_load_model("/sdcard/card2digit.model");
+  const bool training = false;
+
+  if (training) {
+    write_to_training_file(pixel, l, r, t, b);
+    return '\0';
+  }
+
+  static svm_model *model = svm_load_model("/data/data/com.example.card2digit/files/card2digit.model");
 
   double prob_estimates[11];
 
@@ -130,15 +140,32 @@ char recognize(mat<bool> &pixel, int l, int r, int t, int b) {
   for (int i = 0; i < number_of_class; ++i) {
 //  __android_log_print(ANDROID_LOG_VERBOSE, "xxx", "i: %d, label %d, p: %f", i, label[i], prob_estimates[i]);
     if (label[i] == result) {
-      if (prob_estimates[i] < 0.5) {
+      if (prob_estimates[i] < 0.45) {
         return '\0';
       }
-    } else if (prob_estimates[i] > 0.5) {
+    } else if (prob_estimates[i] > 0.45) {
       return '\0';
     }
   }
   return '0' + result;
 }
+
+void write_to_training_file(mat<bool> &pixel, int l, int r, int t, int b) {
+  ofstream s;
+  s.open("/sdcard/training.txt", ios::out | ios::app);
+
+  s << (r - l) << " " << (b - t) << "\n";
+  for (int y = t; y < b; ++y) {
+    for (int x = l; x < r; ++x) {
+      s << (pixel.at(x, y) ? "+" : "-");
+    }
+    s << "\n";
+  }
+
+  s.close();
+}
+
+
 
 int otsu(int histogram[], int total) {
   int sum = 0;

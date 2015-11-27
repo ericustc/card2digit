@@ -1,6 +1,10 @@
 package com.example.card2digit;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import android.content.Context;
@@ -32,6 +36,8 @@ public class CameraPreview extends FrameLayout
   public static float right = 76f / 85.6f;
   public static float top = 44f / 54f;
   public static float bottom = 49f / 54f;
+
+  private static final String MODEL_FILE_NAME = "card2digit.model";
 
   private SurfaceView mSurfaceView;
   private SurfaceHolder mHolder;
@@ -77,6 +83,40 @@ public class CameraPreview extends FrameLayout
         }
       }
     });
+
+    File modelFile = new File(getContext().getFilesDir(), MODEL_FILE_NAME);
+
+    if (!modelFile.exists()) {
+      copyModelToDisk();
+    }
+  }
+
+  public void copyModelToDisk() {
+    InputStream in = getResources().openRawResource(R.raw.model);
+    FileOutputStream out;
+    try {
+      out = getContext().openFileOutput(MODEL_FILE_NAME, Context.MODE_PRIVATE);
+    } catch (FileNotFoundException e) {
+      out = null;
+    }
+
+    byte[] buff = new byte[1024];
+    int read = 0;
+
+    try {
+      while ((read = in.read(buff)) > 0) {
+        out.write(buff, 0, read);
+      }
+    } catch (IOException e) {
+
+    } finally {
+      try {
+        in.close();
+        out.close();
+      } catch (IOException e) {
+      }
+    }
+
   }
 
   public void setCamera(Camera camera) {
@@ -239,33 +279,35 @@ public class CameraPreview extends FrameLayout
     toast.setView(iv);
     toast.setDuration(Toast.LENGTH_LONG);
 
-    String result = "";
     if (takeShot) {
-      result = ocr(MatrixUtils.cropByte(rotated, width, l, r, t, b), r - l,
-          b - t);
+      String result = ocr(MatrixUtils.cropByte(rotated, width, l, r, t, b),
+          r - l, b - t);
       Log.d("xxx", "result: " + result);
       mNum++;
       mButton.setText(
           mNum + " picture" + (mNum > 1 ? "s" : "") + " taken, click to stop");
-      takeShot = false;
-    }
+      // takeShot = false;.
 
-    if (result != null && result.length() == 18) {
-      Intent intent = new Intent(getContext(), ResultActivity.class);
-      intent.putExtra("text", result);
-      l = Math.round(
-          (mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
-              / mSurfaceView.getWidth() * width);
-      r = Math.round((mBorderView.getBoundingBoxWidth()
-          + mSurfaceView.getWidth() / 2 - mBorderView.getBoundingBoxWidth() / 2)
-          / mSurfaceView.getWidth() * width);
-      t = mSurfaceView.getHeight() / 2
-          - Math.round(mBorderView.getBoundingBoxHeight() / 2);
-      b = t + Math.round(mBorderView.getBoundingBoxHeight());
-      intent.putExtra("bitmap",
-          Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
-              r - l, b - t, Bitmap.Config.ARGB_8888));
-      getContext().startActivity(intent);
+      if (result != null && result.length() == 18) {
+        takeShot = false;
+
+        Intent intent = new Intent(getContext(), ResultActivity.class);
+        intent.putExtra("text", result);
+        l = Math.round((mSurfaceView.getWidth() / 2
+            - mBorderView.getBoundingBoxWidth() / 2) / mSurfaceView.getWidth()
+            * width);
+        r = Math.round(
+            (mBorderView.getBoundingBoxWidth() + mSurfaceView.getWidth() / 2
+                - mBorderView.getBoundingBoxWidth() / 2)
+                / mSurfaceView.getWidth() * width);
+        t = mSurfaceView.getHeight() / 2
+            - Math.round(mBorderView.getBoundingBoxHeight() / 2);
+        b = t + Math.round(mBorderView.getBoundingBoxHeight());
+        intent.putExtra("bitmap",
+            Bitmap.createBitmap(MatrixUtils.crop(rotated, width, l, r, t, b),
+                r - l, b - t, Bitmap.Config.ARGB_8888));
+        getContext().startActivity(intent);
+      }
     }
 
   }

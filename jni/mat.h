@@ -20,14 +20,10 @@ public:
 
 char recognize(mat<bool> &pixel, int l, int r, int t, int b);
 
-float compare(unsigned short glyph[], mat<bool> &pixel, int l, int r, int t, int b,
-		float ratio);
-
 /*
  * Otsu's method to determine the optimal threshold
  * https://en.wikipedia.org/wiki/Otsu%27s_method
  */
 int otsu(int histogram[], int total);
 
-template <class T>
-void crop(mat<T> &pixel, int width, int height, int l, int r, int t, int b);
+void write_to_training_file(mat<bool> &pixel, int l, int r, int t, int b);
